@@ -17,6 +17,12 @@
 현재 Codex에는 Discord 서버를 직접 생성할 수 있는 연결 도구가 없다.
 아래 설정으로 Discord에서 서버를 생성한다.
 
+확인 결과:
+
+- Discord 데스크톱 앱은 실행 중이며 응답 상태이다.
+- 확인된 창 제목: `친구 - Discord`
+- Codex에서 Discord 창을 직접 클릭하거나 서버를 생성하는 도구는 현재 제공되지 않는다.
+
 - 서버 이름: `Java SE Mini ELF Analyzer`
 - 역할:
   - `팀원`
@@ -43,17 +49,21 @@ https://www.notion.so/35a31486bf14810baecaf43fe25f6468
 
 ## 3. Git
 
-현재 Windows 환경에서는 `git` 명령이 인식되지 않는다.
-Ubuntu 또는 WSL Ubuntu에서 다음 명령으로 Git을 설치하고 저장소를 초기화한다.
+현재 Windows 환경에서는 시스템 `git` 명령이 인식되지 않아 Portable Git을 임시 폴더에 받아 사용했다.
+
+생성된 Git 상태:
+
+- Branch: `main`
+- Initial commit: `4257782 Initial Mini ELF Analyzer implementation`
+
+Ubuntu 또는 WSL Ubuntu에서 새로 이어 작업할 때는 다음 명령으로 Git을 설치할 수 있다.
 
 ```bash
 sudo apt update
 sudo apt install git
 
 cd ~/mini-elf-analyzer
-git init
-git add .
-git commit -m "Initial Mini ELF Analyzer implementation"
+git status
 ```
 
 GitHub 원격 저장소를 만든 뒤에는 다음 명령을 실행한다.
