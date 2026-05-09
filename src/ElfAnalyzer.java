@@ -9,11 +9,15 @@ public class ElfAnalyzer {
     private final ReportGenerator reportGenerator;
     private final StringExtractor stringExtractor;
     private final SuspiciousStringDetector suspiciousStringDetector;
+    private final SectionHeaderParser sectionHeaderParser;
+    private final SymbolTableAnalyzer symbolTableAnalyzer;
 
     public ElfAnalyzer(ReportGenerator reportGenerator) {
         this.reportGenerator = reportGenerator;
         this.stringExtractor = new StringExtractor();
         this.suspiciousStringDetector = new SuspiciousStringDetector();
+        this.sectionHeaderParser = new SectionHeaderParser();
+        this.symbolTableAnalyzer = new SymbolTableAnalyzer();
     }
 
     public AnalysisResult analyze(String inputPath) throws IOException {
@@ -24,7 +28,9 @@ public class ElfAnalyzer {
         ElfHeader elfHeader = ElfHeader.parse(binaryFile);
         List<String> extractedStrings = stringExtractor.extract(binaryFile.getBytes());
         List<String> suspiciousStrings = suspiciousStringDetector.detect(extractedStrings);
-        String strippedEstimate = estimateStripped(elfHeader.isElfFile(), extractedStrings);
+        List<SectionHeader> sections = sectionHeaderParser.parse(binaryFile, elfHeader);
+        String strippedEstimate = estimateStripped(elfHeader.isElfFile(), sections);
+        String functionCountEstimate = symbolTableAnalyzer.estimateFunctionCount(binaryFile, sections);
 
         AnalysisResult result = new AnalysisResult(
                 path.toAbsolutePath().normalize().toString(),
@@ -36,6 +42,8 @@ public class ElfAnalyzer {
                 elfHeader.getEntryPoint(),
                 elfHeader.getSectionHeaderCount(),
                 strippedEstimate,
+                functionCountEstimate,
+                sections,
                 extractedStrings,
                 suspiciousStrings
         );
@@ -45,13 +53,17 @@ public class ElfAnalyzer {
         return result;
     }
 
-    private String estimateStripped(boolean elfFile, List<String> extractedStrings) {
+    private String estimateStripped(boolean elfFile, List<SectionHeader> sections) {
         if (!elfFile) {
             return "N/A";
         }
 
-        for (String extractedString : extractedStrings) {
-            if (extractedString.contains(".symtab")) {
+        if (sections.isEmpty()) {
+            return "N/A";
+        }
+
+        for (SectionHeader section : sections) {
+            if (".symtab".equals(section.getName())) {
                 return "Not Stripped (추정)";
             }
         }

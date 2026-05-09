@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -43,8 +44,22 @@ public class Main {
         System.out.println("Entry Point: " + result.getEntryPoint());
         System.out.println("Section Header Count: " + result.getSectionHeaderCountText());
         System.out.println("Stripped Estimate: " + result.getStrippedEstimate());
+        System.out.println("Function Count Estimate: " + result.getFunctionCountEstimate());
         System.out.println("Suspicious Strings: " + result.getSuspiciousStringsText());
+        printImportantSections(result.getImportantSections());
         System.out.println();
         System.out.println("Markdown report generated: " + result.getReportPath());
+    }
+
+    private static void printImportantSections(List<SectionHeader> importantSections) {
+        if (importantSections.isEmpty()) {
+            return;
+        }
+
+        System.out.println();
+        System.out.println("주요 Sections:");
+        for (SectionHeader section : importantSections) {
+            System.out.println("- " + section.getName());
+        }
     }
 }

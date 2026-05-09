@@ -12,6 +12,8 @@ public class AnalysisResult {
     private final String entryPoint;
     private final int sectionHeaderCount;
     private final String strippedEstimate;
+    private final String functionCountEstimate;
+    private final List<SectionHeader> sections;
     private final List<String> extractedStrings;
     private final List<String> suspiciousStrings;
     private String reportPath;
@@ -19,6 +21,7 @@ public class AnalysisResult {
     public AnalysisResult(String filePath, long fileSize, boolean elfFile,
                           String bitClass, String endian, String architecture,
                           String entryPoint, int sectionHeaderCount, String strippedEstimate,
+                          String functionCountEstimate, List<SectionHeader> sections,
                           List<String> extractedStrings,
                           List<String> suspiciousStrings) {
         this.filePath = filePath;
@@ -30,6 +33,8 @@ public class AnalysisResult {
         this.entryPoint = entryPoint;
         this.sectionHeaderCount = sectionHeaderCount;
         this.strippedEstimate = strippedEstimate;
+        this.functionCountEstimate = functionCountEstimate;
+        this.sections = Collections.unmodifiableList(new ArrayList<SectionHeader>(sections));
         this.extractedStrings = Collections.unmodifiableList(new ArrayList<String>(extractedStrings));
         this.suspiciousStrings = Collections.unmodifiableList(new ArrayList<String>(suspiciousStrings));
         this.reportPath = "reports/analysis_report.md";
@@ -82,6 +87,38 @@ public class AnalysisResult {
         return strippedEstimate;
     }
 
+    public String getFunctionCountEstimate() {
+        return functionCountEstimate;
+    }
+
+    public List<SectionHeader> getSections() {
+        return sections;
+    }
+
+    public List<SectionHeader> getImportantSections() {
+        String[] importantNames = {
+                ".text",
+                ".rodata",
+                ".data",
+                ".bss",
+                ".dynsym",
+                ".dynstr",
+                ".symtab",
+                ".strtab",
+                ".shstrtab"
+        };
+        List<SectionHeader> importantSections = new ArrayList<SectionHeader>();
+
+        for (String importantName : importantNames) {
+            SectionHeader section = findSection(importantName);
+            if (section != null) {
+                importantSections.add(section);
+            }
+        }
+
+        return Collections.unmodifiableList(importantSections);
+    }
+
     public List<String> getSuspiciousStrings() {
         return suspiciousStrings;
     }
@@ -103,6 +140,16 @@ public class AnalysisResult {
 
     public boolean hasSuspiciousKeyword(String keyword) {
         return suspiciousStrings.contains(keyword);
+    }
+
+    private SectionHeader findSection(String sectionName) {
+        for (SectionHeader section : sections) {
+            if (sectionName.equals(section.getName())) {
+                return section;
+            }
+        }
+
+        return null;
     }
 
     private String joinStrings(List<String> values) {

@@ -4,27 +4,36 @@ public class ElfHeader {
     private static final int E_MACHINE_OFFSET = 0x12;
     private static final int ELF32_HEADER_SIZE = 52;
     private static final int ELF64_HEADER_SIZE = 64;
+    private static final int UNKNOWN_OFFSET = -1;
 
     private final boolean elfFile;
     private final String bitClass;
     private final String endian;
     private final String architecture;
     private final String entryPoint;
+    private final long sectionHeaderOffset;
+    private final int sectionHeaderEntrySize;
     private final int sectionHeaderCount;
+    private final int sectionHeaderStringTableIndex;
 
     private ElfHeader(boolean elfFile, String bitClass, String endian,
-                      String architecture, String entryPoint, int sectionHeaderCount) {
+                      String architecture, String entryPoint, long sectionHeaderOffset,
+                      int sectionHeaderEntrySize, int sectionHeaderCount,
+                      int sectionHeaderStringTableIndex) {
         this.elfFile = elfFile;
         this.bitClass = bitClass;
         this.endian = endian;
         this.architecture = architecture;
         this.entryPoint = entryPoint;
+        this.sectionHeaderOffset = sectionHeaderOffset;
+        this.sectionHeaderEntrySize = sectionHeaderEntrySize;
         this.sectionHeaderCount = sectionHeaderCount;
+        this.sectionHeaderStringTableIndex = sectionHeaderStringTableIndex;
     }
 
     public static ElfHeader parse(BinaryFile binaryFile) {
         if (!hasElfMagic(binaryFile)) {
-            return new ElfHeader(false, "N/A", "N/A", "N/A", "N/A", -1);
+            return new ElfHeader(false, "N/A", "N/A", "N/A", "N/A", UNKNOWN_OFFSET, -1, -1, -1);
         }
 
         int classValue = binaryFile.readUnsignedByte(EI_CLASS_OFFSET);
@@ -34,19 +43,38 @@ public class ElfHeader {
         String architecture = parseArchitecture(readMachineValue(binaryFile, endianValue));
 
         String entryPoint = "N/A";
+        long sectionHeaderOffset = UNKNOWN_OFFSET;
+        int sectionHeaderEntrySize = -1;
         int sectionHeaderCount = -1;
+        int sectionHeaderStringTableIndex = -1;
 
         if (classValue == 2 && endianValue == 1) {
             validateMinimumSize(binaryFile, ELF64_HEADER_SIZE, "64-bit Little Endian ELF");
             entryPoint = toHex(binaryFile.readLittleEndianLong(0x18));
+            sectionHeaderOffset = binaryFile.readLittleEndianLong(0x28);
+            sectionHeaderEntrySize = binaryFile.readLittleEndianShort(0x3A);
             sectionHeaderCount = binaryFile.readLittleEndianShort(0x3C);
+            sectionHeaderStringTableIndex = binaryFile.readLittleEndianShort(0x3E);
         } else if (classValue == 1 && endianValue == 1) {
             validateMinimumSize(binaryFile, ELF32_HEADER_SIZE, "32-bit Little Endian ELF");
             entryPoint = toHex(binaryFile.readLittleEndianInt(0x18));
+            sectionHeaderOffset = binaryFile.readLittleEndianInt(0x20);
+            sectionHeaderEntrySize = binaryFile.readLittleEndianShort(0x2E);
             sectionHeaderCount = binaryFile.readLittleEndianShort(0x30);
+            sectionHeaderStringTableIndex = binaryFile.readLittleEndianShort(0x32);
         }
 
-        return new ElfHeader(true, bitClass, endian, architecture, entryPoint, sectionHeaderCount);
+        return new ElfHeader(
+                true,
+                bitClass,
+                endian,
+                architecture,
+                entryPoint,
+                sectionHeaderOffset,
+                sectionHeaderEntrySize,
+                sectionHeaderCount,
+                sectionHeaderStringTableIndex
+        );
     }
 
     private static boolean hasElfMagic(BinaryFile binaryFile) {
@@ -137,7 +165,19 @@ public class ElfHeader {
         return entryPoint;
     }
 
+    public long getSectionHeaderOffset() {
+        return sectionHeaderOffset;
+    }
+
+    public int getSectionHeaderEntrySize() {
+        return sectionHeaderEntrySize;
+    }
+
     public int getSectionHeaderCount() {
         return sectionHeaderCount;
+    }
+
+    public int getSectionHeaderStringTableIndex() {
+        return sectionHeaderStringTableIndex;
     }
 }

@@ -20,6 +20,8 @@ public class ReportGenerator {
         builder.append("# Mini ELF Analyzer Report\n\n");
         appendFileInformation(builder, result);
         appendElfHeader(builder, result);
+        appendAnalysisMetadata(builder, result);
+        appendSectionSummary(builder, result.getSections());
         appendExtractedStrings(builder, result.getExtractedStrings());
         appendSuspiciousStrings(builder, result);
         appendSummary(builder, result);
@@ -42,6 +44,39 @@ public class ReportGenerator {
         builder.append("- Entry Point: ").append(result.getEntryPoint()).append("\n");
         builder.append("- Section Header Count: ").append(result.getSectionHeaderCountText()).append("\n");
         builder.append("- Stripped Estimate: ").append(result.getStrippedEstimate()).append("\n\n");
+    }
+
+    private void appendAnalysisMetadata(StringBuilder builder, AnalysisResult result) {
+        builder.append("## Analysis Metadata\n");
+        builder.append("- Architecture: ").append(result.getArchitecture()).append("\n");
+        builder.append("- Stripped Estimate: ").append(result.getStrippedEstimate()).append("\n");
+        builder.append("- Function Count Estimate: ").append(result.getFunctionCountEstimate()).append("\n\n");
+    }
+
+    private void appendSectionSummary(StringBuilder builder, List<SectionHeader> sections) {
+        builder.append("## Section Summary\n");
+
+        if (sections.isEmpty()) {
+            builder.append("- Section Header Table parsing is not available for this file.\n\n");
+            return;
+        }
+
+        builder.append("| Name | Type | Offset | Size |\n");
+        builder.append("|---|---|---:|---:|\n");
+
+        for (SectionHeader section : sections) {
+            builder.append("| ")
+                    .append(escapeMarkdownText(section.getName()))
+                    .append(" | ")
+                    .append(section.getTypeText())
+                    .append(" | ")
+                    .append(SectionHeader.toHex(section.getOffset()))
+                    .append(" | ")
+                    .append(SectionHeader.toHex(section.getSize()))
+                    .append(" |\n");
+        }
+
+        builder.append("\n");
     }
 
     private void appendExtractedStrings(StringBuilder builder, List<String> extractedStrings) {
@@ -118,9 +153,12 @@ public class ReportGenerator {
                     .append(" \ud56d\ubaa9\uc774 \ubc1c\uacac\ub418\uc5c8\uc2b5\ub2c8\ub2e4.\n");
         }
 
-        builder.append("Stripped 여부는 문자열 목록의 .symtab 포함 여부를 기준으로 ")
+        builder.append("Stripped 여부는 .symtab Section 존재 여부를 기준으로 ")
                 .append(result.getStrippedEstimate())
-                .append("으로 판단했습니다.\n");
+                .append("으로 판단했습니다. ");
+        builder.append("Function Count Estimate는 ")
+                .append(result.getFunctionCountEstimate())
+                .append("입니다.\n");
     }
 
     private String escapeMarkdownText(String text) {
