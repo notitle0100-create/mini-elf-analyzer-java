@@ -5,6 +5,7 @@ import java.util.List;
 
 public class ReportGenerator {
     private static final Path REPORT_PATH = Paths.get("reports", "analysis_report.md");
+    private static final int MAX_REPORTED_STRINGS = 20;
 
     public Path generate(AnalysisResult result) throws IOException {
         FileUtil.ensureReportsDirectory();
@@ -49,8 +50,20 @@ public class ReportGenerator {
             return;
         }
 
-        for (String extractedString : extractedStrings) {
+        int limit = Math.min(extractedStrings.size(), MAX_REPORTED_STRINGS);
+
+        for (int i = 0; i < limit; i++) {
+            String extractedString = extractedStrings.get(i);
             builder.append("- ").append(escapeMarkdownText(extractedString)).append("\n");
+        }
+
+        if (extractedStrings.size() > MAX_REPORTED_STRINGS) {
+            builder.append("\n");
+            builder.append("총 ")
+                    .append(extractedStrings.size())
+                    .append("개 중 처음 ")
+                    .append(MAX_REPORTED_STRINGS)
+                    .append("개 문자열만 표시합니다.\n");
         }
 
         builder.append("\n");
@@ -76,7 +89,8 @@ public class ReportGenerator {
         builder.append("## 5. Summary\n");
 
         if (!result.isElfFile()) {
-            builder.append("\uc785\ub825 \ud30c\uc77c\uc758 ELF Magic Number\uac00 \uc77c\uce58\ud558\uc9c0 \uc54a\uc544 ELF \ud30c\uc77c\uc774 \uc544\ub2cc \uac83\uc73c\ub85c \ud310\ub2e8\ub429\ub2c8\ub2e4.\n");
+            builder.append("입력 파일의 ELF Magic Number가 일치하지 않아 ELF 파일이 아닌 것으로 판단됩니다. ")
+                    .append("ELF Header 상세 항목은 N/A로 기록했습니다.\n");
             return;
         }
 
