@@ -24,6 +24,7 @@ public class ElfAnalyzer {
         ElfHeader elfHeader = ElfHeader.parse(binaryFile);
         List<String> extractedStrings = stringExtractor.extract(binaryFile.getBytes());
         List<String> suspiciousStrings = suspiciousStringDetector.detect(extractedStrings);
+        String strippedEstimate = estimateStripped(elfHeader.isElfFile(), extractedStrings);
 
         AnalysisResult result = new AnalysisResult(
                 path.toAbsolutePath().normalize().toString(),
@@ -31,8 +32,10 @@ public class ElfAnalyzer {
                 elfHeader.isElfFile(),
                 elfHeader.getBitClass(),
                 elfHeader.getEndian(),
+                elfHeader.getArchitecture(),
                 elfHeader.getEntryPoint(),
                 elfHeader.getSectionHeaderCount(),
+                strippedEstimate,
                 extractedStrings,
                 suspiciousStrings
         );
@@ -40,6 +43,20 @@ public class ElfAnalyzer {
         Path reportPath = reportGenerator.generate(result);
         result.setReportPath(reportPath.toString().replace('\\', '/'));
         return result;
+    }
+
+    private String estimateStripped(boolean elfFile, List<String> extractedStrings) {
+        if (!elfFile) {
+            return "N/A";
+        }
+
+        for (String extractedString : extractedStrings) {
+            if (extractedString.contains(".symtab")) {
+                return "Not Stripped (추정)";
+            }
+        }
+
+        return "Stripped (추정)";
     }
 
     private void validateFile(Path path) throws IOException {

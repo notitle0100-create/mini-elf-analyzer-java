@@ -42,6 +42,12 @@ public class BinaryFile {
                 | ((data[offset + 1] & 0xFF) << 8);
     }
 
+    public int readBigEndianShort(int offset) {
+        validateRange(offset, 2);
+        return ((data[offset] & 0xFF) << 8)
+                | (data[offset + 1] & 0xFF);
+    }
+
     public long readLittleEndianInt(int offset) {
         validateRange(offset, 4);
         return ((long) data[offset] & 0xFF)

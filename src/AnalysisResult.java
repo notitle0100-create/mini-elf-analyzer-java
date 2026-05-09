@@ -8,23 +8,28 @@ public class AnalysisResult {
     private final boolean elfFile;
     private final String bitClass;
     private final String endian;
+    private final String architecture;
     private final String entryPoint;
     private final int sectionHeaderCount;
+    private final String strippedEstimate;
     private final List<String> extractedStrings;
     private final List<String> suspiciousStrings;
     private String reportPath;
 
     public AnalysisResult(String filePath, long fileSize, boolean elfFile,
-                          String bitClass, String endian, String entryPoint,
-                          int sectionHeaderCount, List<String> extractedStrings,
+                          String bitClass, String endian, String architecture,
+                          String entryPoint, int sectionHeaderCount, String strippedEstimate,
+                          List<String> extractedStrings,
                           List<String> suspiciousStrings) {
         this.filePath = filePath;
         this.fileSize = fileSize;
         this.elfFile = elfFile;
         this.bitClass = bitClass;
         this.endian = endian;
+        this.architecture = architecture;
         this.entryPoint = entryPoint;
         this.sectionHeaderCount = sectionHeaderCount;
+        this.strippedEstimate = strippedEstimate;
         this.extractedStrings = Collections.unmodifiableList(new ArrayList<String>(extractedStrings));
         this.suspiciousStrings = Collections.unmodifiableList(new ArrayList<String>(suspiciousStrings));
         this.reportPath = "reports/analysis_report.md";
@@ -50,6 +55,10 @@ public class AnalysisResult {
         return endian;
     }
 
+    public String getArchitecture() {
+        return architecture;
+    }
+
     public String getEntryPoint() {
         return entryPoint;
     }
@@ -67,6 +76,10 @@ public class AnalysisResult {
 
     public List<String> getExtractedStrings() {
         return extractedStrings;
+    }
+
+    public String getStrippedEstimate() {
+        return strippedEstimate;
     }
 
     public List<String> getSuspiciousStrings() {

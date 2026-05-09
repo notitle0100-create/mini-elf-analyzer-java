@@ -38,8 +38,10 @@ public class ReportGenerator {
         builder.append("- ELF File: ").append(result.isElfFile()).append("\n");
         builder.append("- Class: ").append(result.getBitClass()).append("\n");
         builder.append("- Endian: ").append(result.getEndian()).append("\n");
+        builder.append("- Architecture: ").append(result.getArchitecture()).append("\n");
         builder.append("- Entry Point: ").append(result.getEntryPoint()).append("\n");
-        builder.append("- Section Header Count: ").append(result.getSectionHeaderCountText()).append("\n\n");
+        builder.append("- Section Header Count: ").append(result.getSectionHeaderCountText()).append("\n");
+        builder.append("- Stripped Estimate: ").append(result.getStrippedEstimate()).append("\n\n");
     }
 
     private void appendExtractedStrings(StringBuilder builder, List<String> extractedStrings) {
@@ -98,6 +100,8 @@ public class ReportGenerator {
                 .append(result.getBitClass())
                 .append(", ")
                 .append(result.getEndian())
+                .append(", ")
+                .append(result.getArchitecture())
                 .append(" ELF \ud30c\uc77c\ub85c \uc2dd\ubcc4\ub418\uc5c8\uc2b5\ub2c8\ub2e4. ");
 
         if ("N/A".equals(result.getEntryPoint()) || "N/A".equals(result.getSectionHeaderCountText())) {
@@ -113,6 +117,10 @@ public class ReportGenerator {
                     .append(result.getSuspiciousStringsText())
                     .append(" \ud56d\ubaa9\uc774 \ubc1c\uacac\ub418\uc5c8\uc2b5\ub2c8\ub2e4.\n");
         }
+
+        builder.append("Stripped 여부는 문자열 목록의 .symtab 포함 여부를 기준으로 ")
+                .append(result.getStrippedEstimate())
+                .append("으로 판단했습니다.\n");
     }
 
     private String escapeMarkdownText(String text) {

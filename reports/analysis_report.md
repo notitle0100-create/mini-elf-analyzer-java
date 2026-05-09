@@ -8,8 +8,10 @@
 - ELF File: true
 - Class: 64-bit
 - Endian: Little Endian
+- Architecture: x86-64
 - Entry Point: 0x107fe0
 - Section Header Count: 34
+- Stripped Estimate: Stripped (추정)
 
 ## 3. Extracted Strings
 - /lib64/ld-linux-x86-64.so.2
@@ -45,4 +47,5 @@
 | execve | Not Found |
 
 ## 5. Summary
-입력 파일은 64-bit, Little Endian ELF 파일로 식별되었습니다. Entry Point와 Section Header Count를 ELF Header에서 정적으로 추출했습니다. 지정된 의심 문자열 중 flag, password, /bin/sh, system 항목이 발견되었습니다.
+입력 파일은 64-bit, Little Endian, x86-64 ELF 파일로 식별되었습니다. Entry Point와 Section Header Count를 ELF Header에서 정적으로 추출했습니다. 지정된 의심 문자열 중 flag, password, /bin/sh, system 항목이 발견되었습니다.
+Stripped 여부는 문자열 목록의 .symtab 포함 여부를 기준으로 Stripped (추정)으로 판단했습니다.

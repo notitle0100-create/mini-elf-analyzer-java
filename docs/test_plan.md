@@ -25,9 +25,19 @@ java -cp src Main
 
 | 번호 | 테스트 입력 | 기대 결과 | 실제 결과 | 판정 |
 |---|---|---|---|---|
-| 1 | `/bin/ls` | `ELF File: true`, `Class: 64-bit`, `Endian: Little Endian` | `Entry Point: 0x107fe0`, `Section Header Count: 34` 출력. `readelf -h /bin/ls` 결과와 비교하여 일치 | 통과 |
-| 2 | `sample.txt` | `ELF File: false` | `ELF File: false`, `Class: N/A`, `Endian: N/A`, `Entry Point: N/A`, `Section Header Count: N/A` 출력 | 통과 |
+| 1 | `/bin/ls` | `ELF File: true`, `Class: 64-bit`, `Endian: Little Endian`, `Architecture: x86-64` | `Architecture: x86-64`, `Entry Point: 0x107fe0`, `Section Header Count: 34`, `Stripped Estimate: Stripped (추정)` 출력. `readelf -h /bin/ls` 결과와 비교하여 Architecture, Entry Point, Section Header Count 일치 | 통과 |
+| 2 | `sample.txt` | `ELF File: false` | `ELF File: false`, `Class: N/A`, `Endian: N/A`, `Architecture: N/A`, `Entry Point: N/A`, `Section Header Count: N/A`, `Stripped Estimate: N/A` 출력 | 통과 |
 | 3 | `notfound.bin` | 파일 없음 오류 메시지 | `[ERROR] 파일이 존재하지 않습니다: notfound.bin` 출력 | 통과 |
+
+## readelf 비교 결과
+
+`readelf -h /bin/ls` 결과와 Java 프로그램의 `/bin/ls` 분석 결과를 비교한다.
+
+| 비교 항목 | Java 프로그램 결과 | readelf 결과 | 판정 |
+|---|---|---|---|
+| Architecture | `x86-64` | `Machine: Advanced Micro Devices X86-64` | 일치 |
+| Entry Point | `0x107fe0` | `Entry point address: 0x107fe0` | 일치 |
+| Section Header Count | `34` | `Number of section headers: 34` | 일치 |
 
 ## 수동 테스트 절차
 
@@ -40,6 +50,8 @@ java -cp src Main
 ## 보고서 확인 항목
 
 - ELF Header 항목이 실제 분석 결과와 일치하는지 확인한다.
-- 비ELF 파일은 Class, Endian, Entry Point, Section Header Count가 `N/A`로 출력되는지 확인한다.
+- 비ELF 파일은 Class, Endian, Architecture, Entry Point, Section Header Count, Stripped Estimate가 `N/A`로 출력되는지 확인한다.
+- Architecture 항목이 ELF Header의 `e_machine` 값을 기준으로 출력되는지 확인한다.
+- Stripped Estimate가 문자열 목록의 `.symtab` 포함 여부를 기준으로 `추정` 문구와 함께 출력되는지 확인한다.
 - Suspicious Strings가 `Found` / `Not Found` 표 형태로 출력되는지 확인한다.
 - Extracted Strings가 많은 경우 보고서에는 처음 20개 문자열만 표시되는지 확인한다.

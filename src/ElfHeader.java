@@ -1,33 +1,37 @@
 public class ElfHeader {
     private static final int EI_CLASS_OFFSET = 4;
     private static final int EI_DATA_OFFSET = 5;
+    private static final int E_MACHINE_OFFSET = 0x12;
     private static final int ELF32_HEADER_SIZE = 52;
     private static final int ELF64_HEADER_SIZE = 64;
 
     private final boolean elfFile;
     private final String bitClass;
     private final String endian;
+    private final String architecture;
     private final String entryPoint;
     private final int sectionHeaderCount;
 
     private ElfHeader(boolean elfFile, String bitClass, String endian,
-                      String entryPoint, int sectionHeaderCount) {
+                      String architecture, String entryPoint, int sectionHeaderCount) {
         this.elfFile = elfFile;
         this.bitClass = bitClass;
         this.endian = endian;
+        this.architecture = architecture;
         this.entryPoint = entryPoint;
         this.sectionHeaderCount = sectionHeaderCount;
     }
 
     public static ElfHeader parse(BinaryFile binaryFile) {
         if (!hasElfMagic(binaryFile)) {
-            return new ElfHeader(false, "N/A", "N/A", "N/A", -1);
+            return new ElfHeader(false, "N/A", "N/A", "N/A", "N/A", -1);
         }
 
         int classValue = binaryFile.readUnsignedByte(EI_CLASS_OFFSET);
         int endianValue = binaryFile.readUnsignedByte(EI_DATA_OFFSET);
         String bitClass = parseBitClass(classValue);
         String endian = parseEndian(endianValue);
+        String architecture = parseArchitecture(readMachineValue(binaryFile, endianValue));
 
         String entryPoint = "N/A";
         int sectionHeaderCount = -1;
@@ -42,7 +46,7 @@ public class ElfHeader {
             sectionHeaderCount = binaryFile.readLittleEndianShort(0x30);
         }
 
-        return new ElfHeader(true, bitClass, endian, entryPoint, sectionHeaderCount);
+        return new ElfHeader(true, bitClass, endian, architecture, entryPoint, sectionHeaderCount);
     }
 
     private static boolean hasElfMagic(BinaryFile binaryFile) {
@@ -72,6 +76,36 @@ public class ElfHeader {
         return "Unknown";
     }
 
+    private static int readMachineValue(BinaryFile binaryFile, int endianValue) {
+        if (binaryFile.size() < E_MACHINE_OFFSET + 2) {
+            return -1;
+        }
+
+        if (endianValue == 1) {
+            return binaryFile.readLittleEndianShort(E_MACHINE_OFFSET);
+        }
+        if (endianValue == 2) {
+            return binaryFile.readBigEndianShort(E_MACHINE_OFFSET);
+        }
+        return -1;
+    }
+
+    private static String parseArchitecture(int machineValue) {
+        if (machineValue == 0x3E) {
+            return "x86-64";
+        }
+        if (machineValue == 0x03) {
+            return "x86";
+        }
+        if (machineValue == 0xB7) {
+            return "AArch64";
+        }
+        if (machineValue == 0x28) {
+            return "ARM";
+        }
+        return "Unknown";
+    }
+
     private static void validateMinimumSize(BinaryFile binaryFile, int minimumSize, String label) {
         if (binaryFile.size() < minimumSize) {
             throw new IllegalArgumentException(label + " Header \ubd84\uc11d\uc5d0 \ub108\ubb34 \uc791\uc2b5\ub2c8\ub2e4. \ucd5c\uc18c "
@@ -93,6 +127,10 @@ public class ElfHeader {
 
     public String getEndian() {
         return endian;
+    }
+
+    public String getArchitecture() {
+        return architecture;
     }
 
     public String getEntryPoint() {

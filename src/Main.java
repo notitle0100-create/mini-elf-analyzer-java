@@ -39,8 +39,10 @@ public class Main {
 
         System.out.println("Class: " + result.getBitClass());
         System.out.println("Endian: " + result.getEndian());
+        System.out.println("Architecture: " + result.getArchitecture());
         System.out.println("Entry Point: " + result.getEntryPoint());
         System.out.println("Section Header Count: " + result.getSectionHeaderCountText());
+        System.out.println("Stripped Estimate: " + result.getStrippedEstimate());
         System.out.println("Suspicious Strings: " + result.getSuspiciousStringsText());
         System.out.println();
         System.out.println("Markdown report generated: " + result.getReportPath());
